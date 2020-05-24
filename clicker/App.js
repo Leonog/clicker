@@ -299,12 +299,9 @@ class App extends Component {
             }} />
             <View style={{ position: 'absolute', display: 'flex', alignSelf: 'center', marginTop: 4 }}>
               <Text style={{ color: '#FFF', fontWeight: 'bold' }}>
-                {hpInimigo < 0 ? '0' : (
-                  (hpInimigo > 100) ?
-                    hpInimigo.toFixed(0)
-                    :
-                    hpInimigo.toFixed(2)
-                )}/{defaultHp}
+                {hpInimigo < 0 ? '0' : 
+                  hpInimigo.toFixed(0) + 
+                    '/' + defaultHp}
               </Text>
             </View>
           </View>

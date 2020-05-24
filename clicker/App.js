@@ -234,7 +234,29 @@ class App extends Component {
     } = this.state
     return (
       <View style={styles.container}>
+      <TouchableOpacity
+          style={{
+            display: 'flex',
+            padding: 40,
+            height: '80%',
+            width: '100%',
+            top: 0,
+            position: 'absolute',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+          onPress={() => {
+            this.hit(dano)
+          }}
+        >
+          <Text style={{
+            color: '#4a5b64',
+            fontSize: 26,
+            fontWeight: 'bold',
+          }}>CLIQUE</Text>
+        </TouchableOpacity>
         <View style={styles.content}>
+
           <View style={styles.headRow}>
             <View style={styles.headRowCol}>
               <Text style={{
@@ -313,23 +335,6 @@ class App extends Component {
               fontSize: 16,
             }}>{qtdInimigos > 9 ? '' : `${qtdInimigos}/10`}</Text>
           </View>
-
-          <TouchableOpacity
-            style={{
-              display: 'flex',
-              backgroundColor: 'red',
-              padding: 40,
-            }}
-            onPress={() => {
-              this.hit(dano)
-            }}
-          >
-            <Text style={{
-              fontSize: 24,
-              color: '#FFF',
-              fontWeight: 'bold',
-            }}>CLIQUE</Text>
-          </TouchableOpacity>
           {level === 100 &&
             <TouchableOpacity
               style={{ backgroundColor: 'black', padding: 20 }}

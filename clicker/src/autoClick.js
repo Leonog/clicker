@@ -39,7 +39,15 @@ class AutoClick extends Component {
     const { autoClick } = this.state
     return(
       <TouchableOpacity
-        style={{ backgroundColor: !autoClick ? 'red' : 'green', padding: 4 }}
+        style={{ backgroundColor: !autoClick ? '#c00' : 'green', 
+          padding: 4,
+          alignSelf: 'flex-end', 
+          borderRadius: 20, 
+          height: 40, 
+          width: 40,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
         onPress={() => {
           if(autoClick)
             this.disableAutoClick()
@@ -47,7 +55,7 @@ class AutoClick extends Component {
             this.enableAutoClick()
         }}
       >
-        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{!autoClick ? 'Desativado' : 'Ativado'}</Text>
+        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 11 }}>AUTO</Text>
       </TouchableOpacity>
     )
   }

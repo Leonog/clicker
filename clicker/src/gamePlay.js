@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, AsyncStorage, TouchableWithoutFeedback } from 'react-native';
 import AutoClick from './autoClick';
+import Char from './char'
 
 class GamePlay extends Component {
 
   state = {
     rebirthUpgrade: 0,
+    rebirthLevel: 0,
     ouro: 0,
     dano: 1,
     defaultUpgrade: 25,
@@ -26,6 +28,11 @@ class GamePlay extends Component {
     danoDps: 0,
     showUpgrades: false,
     showMenu: false,
+    attacking: false,
+  }
+
+  setAttacking = (attack) => {
+    this.setState({ attacking: attack})
   }
 
   componentWillUnmount() {
@@ -127,19 +134,31 @@ class GamePlay extends Component {
   }
 
   rebirth = () => {
+    const { rebirthUpgrade, rebirthLevel } = this.state
     this.setState({
-      dano: 1,
       rebirthUpgrade: rebirthUpgrade + 0.1,
+      rebirthLevel: rebirthLevel + 1,
       ouro: 0,
+      dano: 1,
       defaultUpgrade: 25,
       valUpgrade: 25,
       upgradeLevel: 1,
       defaultHp: 5,
-      hpInimigo: 10,
+      hpInimigo: 5,
       level: 1,
       qtdInimigos: 0,
       enableNextLvl: false,
       showNextLvl: true,
+      dps: [],
+      autoDano: 0,
+      defaultAutoUpgrade: 10,
+      valAutoUpgrade: 10,
+      autoUpgradeLevel: 0,
+      timer: null,
+      danoDps: 0,
+      showUpgrades: false,
+      showMenu: false,
+      attacking: false,
     })
   }
 
@@ -263,27 +282,7 @@ class GamePlay extends Component {
     const { language } = this.props
     return (
       <View style={styles.container}>
-        <TouchableOpacity
-          style={{
-            display: 'flex',
-            padding: 40,
-            height: '80%',
-            width: '100%',
-            top: 0,
-            position: 'absolute',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {
-            this.hit(dano)
-          }}
-        >
-          <Text style={{
-            color: '#4a5b64',
-            fontSize: 26,
-            fontWeight: 'bold',
-          }}>{language ? 'CLIQUE' : 'CLICK'}</Text>
-        </TouchableOpacity>
+        <Char hit={this.hit} dano={dano}/>
         <View style={styles.content}>
 
           <View style={styles.headRow}>
@@ -368,18 +367,6 @@ class GamePlay extends Component {
             hit={this.hit}
             dano={autoDano}
           />
-          {level === 100 &&
-            <TouchableOpacity
-              style={{ backgroundColor: 'black', padding: 20 }}
-              onPress={() => {
-                this.rebirth()
-              }}
-            >
-              <Text style={{ color: '#FFF' }}>
-                REBIRTH
-              </Text>
-            </TouchableOpacity>
-          }
         </View>
         <View style={styles.bottomMenu}>
           {enableNextLvl && showNextLvl &&
@@ -403,6 +390,30 @@ class GamePlay extends Component {
                   color: '#FFF',
                   fontWeight: 'bold'
                 }}>Next Level</Text>
+              </TouchableOpacity>
+            </View>
+          }
+          {level >= 100 && !showNextLvl && enableNextLvl &&
+            <View style={styles.bottomMenuRow}>
+              <TouchableOpacity style={{
+                backgroundColor: 'black',
+                padding: 15,
+                paddingLeft: 30,
+                paddingRight: 30,
+                borderRadius: 50,
+                elevation: 8,
+                marginRight: 20,
+                marginBottom: 40,
+              }}
+                onPress={() => {
+                  this.rebirth()
+                }}
+              >
+                <Text style={{
+                  fontSize: 20,
+                  color: '#FFF',
+                  fontWeight: 'bold'
+                }}>REBIRTH</Text>
               </TouchableOpacity>
             </View>
           }

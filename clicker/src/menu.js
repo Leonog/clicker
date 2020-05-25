@@ -98,7 +98,7 @@ class Menu extends Component {
             </TouchableOpacity>
           </Animated.View>
           <Animated.View style={{ top: this.state.yLogo}}>
-            <Text style={{fontSize: 46, fontWeight: 'bold' }}>LOGO</Text>
+            <Text style={{fontSize: 46, fontWeight: 'bold' }}>CLICKER</Text>
           </Animated.View>
           <Animated.View style={{
             opacity: this.state.fade, display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 270}}>

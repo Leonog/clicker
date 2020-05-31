@@ -1,13 +1,20 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, AsyncStorage, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, AsyncStorage, TouchableWithoutFeedback, Switch } from 'react-native';
 import AutoClick from './autoClick';
 import Char from './char'
 
 class GamePlay extends Component {
 
   state = {
-    rebirthUpgrade: 0,
     rebirthLevel: 0,
+    rebirthPoints: 0,
+    showRebirth: false,
+    rebirthGoldUpgrade: 0,
+    rebirthIdleUpgrade: 0,
+    rebirthClickUpgrade: 0,
+    ouroTotal: 0,
+    clickTotal: 0,
+    enemyTotal: 0,
     ouro: 0,
     dano: 1,
     defaultUpgrade: 25,
@@ -29,6 +36,9 @@ class GamePlay extends Component {
     showUpgrades: false,
     showMenu: false,
     attacking: false,
+    countLevel: 1,
+    countUpgrade: 1,
+    countAutoUpgrade: 1,
   }
 
   setAttacking = (attack) => {
@@ -74,57 +84,60 @@ class GamePlay extends Component {
     if (qtdInimigos >= 10 && !enableNextLvl) {
       this.setState({ enableNextLvl: true })
     }
-    if (level === 100 && showNextLvl) {
-      this.setState({ showNextLvl: false })
-    }
   }
 
   upgrade = () => {
-    const { ouro, valUpgrade, upgradeLevel, defaultUpgrade, dano } = this.state
+    const { ouro, valUpgrade, upgradeLevel, defaultUpgrade, dano, countUpgrade } = this.state
     if (ouro >= valUpgrade) {
       this.setState({
         ouro: ouro - valUpgrade,
         upgradeLevel: upgradeLevel + 1,
-        defaultUpgrade: Number.isInteger(upgradeLevel / 10) ? defaultUpgrade * 2 : defaultUpgrade,
+        defaultUpgrade: countUpgrade === 10 ? defaultUpgrade * 2 : defaultUpgrade,
         valUpgrade: valUpgrade + 1 + Number((defaultUpgrade / 10).toFixed(0)),
         dano: dano + 1,
+        countUpgrade: countUpgrade < 10 ? countUpgrade + 1 : 1, 
       })
     }
   }
 
   autoUpgrade = () => {
-    const { ouro, valAutoUpgrade, autoUpgradeLevel, defaultAutoUpgrade, autoDano } = this.state
+    const { ouro, valAutoUpgrade, autoUpgradeLevel, defaultAutoUpgrade, autoDano, countAutoUpgrade } = this.state
     if (ouro >= valAutoUpgrade) {
       this.setState({
         ouro: ouro - valAutoUpgrade,
         autoUpgradeLevel: autoUpgradeLevel + 1,
-        defaultAutoUpgrade: Number.isInteger(autoUpgradeLevel / 10) ? defaultAutoUpgrade * 2 : defaultAutoUpgrade,
+        defaultAutoUpgrade: countAutoUpgrade === 10 ? defaultAutoUpgrade * 2 : defaultAutoUpgrade,
         valAutoUpgrade: valAutoUpgrade + 1 + Number((defaultAutoUpgrade / 10).toFixed(0)),
-        autoDano: autoDano + 1
+        autoDano: autoDano + 1,
+        countAutoUpgrade: countAutoUpgrade < 10 ? countAutoUpgrade + 1 : 1,
       })
     }
   }
 
   recebeOuro = () => {
-    const { level } = this.state
+    const { level, ouroTotal } = this.state
     let rand = Math.random().toFixed(2) * 2
+    this.setState({ ouroTotal: ouroTotal })
     if (rand < 1) rand = 1
-    return (rand * level).toFixed(0)
+    let ouro = (rand * level).toFixed(0)
+    this.setState({ ouroTotal: ouroTotal + Number(ouro) })
+    return ouro
   }
 
   inimigoMorreu = () => {
-    const { qtdInimigos, defaultHp, ouro } = this.state
+    const { qtdInimigos, defaultHp, ouro, enemyTotal } = this.state
     this.setState({
       qtdInimigos: qtdInimigos + 1,
       hpInimigo: defaultHp,
-      ouro: ouro + Number(this.recebeOuro())
+      ouro: ouro + Number(this.recebeOuro()),
+      enemyTotal: enemyTotal + 1,
     }, () => {
       AsyncStorage.setItem('gameState', JSON.stringify(this.state))
     })
   }
 
-  hit = (damage) => {
-    const { hpInimigo, rebirthUpgrade, dps } = this.state
+  hit = (damage, rebirthUpgrade) => {
+    const { hpInimigo, dps } = this.state
     let dano = damage + (damage * rebirthUpgrade)
     dps.push(dano)
     this.setState({
@@ -134,11 +147,18 @@ class GamePlay extends Component {
   }
 
   rebirth = () => {
-    const { rebirthUpgrade, rebirthLevel } = this.state
+    const { ouro, ouroTotal, clickTotal, enemyTotal, rebirthLevel, rebirthPoints, rebirthGoldUpgrade, rebirthIdleUpgrade, rebirthClickUpgrade } = this.state
     this.setState({
-      rebirthUpgrade: rebirthUpgrade + 0.1,
       rebirthLevel: rebirthLevel + 1,
-      ouro: 0,
+      rebirthPoints: rebirthPoints + 1,
+      ouroTotal,
+      clickTotal,
+      enemyTotal,
+      rebirthGoldUpgrade,
+      rebirthIdleUpgrade,
+      rebirthClickUpgrade,
+      showRebirth: false,
+      ouro: ouro < rebirthGoldUpgrade ? ouro : rebirthGoldUpgrade,
       dano: 1,
       defaultUpgrade: 25,
       valUpgrade: 25,
@@ -159,24 +179,59 @@ class GamePlay extends Component {
       showUpgrades: false,
       showMenu: false,
       attacking: false,
+      countLevel: 1,
+      countUpgrade: 1,
+      countAutoUpgrade: 1,
     })
   }
 
   nextLevel = () => {
-    const { defaultHp, level } = this.state
+    const { defaultHp, level, countLevel } = this.state
     let newHp
-    if (Number.isInteger(level / 10)) {
+    if (countLevel === 10) {
       newHp = (defaultHp * 2) + 5
     } else {
       newHp = defaultHp + 5
     }
     this.setState({
+      countLevel: countLevel < 10 ? countLevel + 1 : 1,
       qtdInimigos: 0,
       defaultHp: newHp,
       hpInimigo: newHp,
       enableNextLvl: false,
-      level: level <= 99 ? level + 1 : level,
+      level: level + 1,
     })
+  }
+
+  rebirthUpgrade = (upgrade) => {
+    const {rebirthPoints, rebirthClickUpgrade, rebirthGoldUpgrade, rebirthIdleUpgrade, rebirthLevel} = this.state
+    if(rebirthPoints > 0)
+      switch(upgrade){
+        case 'idle':
+          if(rebirthLevel > 1) this.setState({ 
+            rebirthIdleUpgrade: rebirthIdleUpgrade+0.1,
+            rebirthPoints: rebirthPoints - 1
+          })
+        break
+        case 'click':
+          if(rebirthLevel > 2) this.setState({ 
+            rebirthClickUpgrade: rebirthClickUpgrade+0.1,
+            rebirthPoints: rebirthPoints - 1,
+          })
+        break
+        case 'gold':
+          this.setState({ 
+            rebirthGoldUpgrade: rebirthGoldUpgrade+1000,
+            rebirthPoints: rebirthPoints - 1,
+          })
+        break
+        default: break
+      }
+  }
+
+  setClickTotal = () => {
+    const { clickTotal } = this.state
+    this.setState({ clickTotal: clickTotal + 1})
   }
 
   render() {
@@ -263,10 +318,7 @@ class GamePlay extends Component {
     });
     const {
       ouro,
-      upgradeLevel,
       dano,
-      rebirthUpgrade,
-      autoUpgradeLevel,
       autoDano,
       hpInimigo,
       qtdInimigos,
@@ -277,12 +329,21 @@ class GamePlay extends Component {
       showNextLvl,
       danoDps,
       defaultHp,
-      showMenu,
+      rebirthPoints,
+      rebirthLevel,
+      rebirthClickUpgrade,
+      rebirthGoldUpgrade,
+      rebirthIdleUpgrade,
     } = this.state
     const { language } = this.props
     return (
       <View style={styles.container}>
-        <Char hit={this.hit} dano={dano}/>
+        <Char 
+          hit={this.hit} 
+          dano={dano}
+          rebirthUpgrade={rebirthClickUpgrade}
+          setClickTotal={this.setClickTotal}
+        />
         <View style={styles.content}>
 
           <View style={styles.headRow}>
@@ -366,6 +427,7 @@ class GamePlay extends Component {
           <AutoClick
             hit={this.hit}
             dano={autoDano}
+            rebirthUpgrade={rebirthIdleUpgrade}
           />
         </View>
         <View style={styles.bottomMenu}>
@@ -393,7 +455,7 @@ class GamePlay extends Component {
               </TouchableOpacity>
             </View>
           }
-          {level >= 100 && !showNextLvl && enableNextLvl &&
+          {level >= 100 && 
             <View style={styles.bottomMenuRow}>
               <TouchableOpacity style={{
                 backgroundColor: 'black',
@@ -418,6 +480,25 @@ class GamePlay extends Component {
             </View>
           }
           <View style={styles.bottomMenuRow}>
+            { this.state.rebirthLevel > 0 &&
+              <TouchableOpacity
+                style={
+                  this.state.showRebirth ? 
+                    styles.upgradesButtonSelected
+                  :
+                    styles.upgradesButton
+                }
+                onPress={() => {
+                  this.setState({ 
+                    showRebirth: !this.state.showRebirth,
+                    showMenu: false,
+                    showUpgrades: false,
+                  })
+                }}
+              >
+                <Text style={styles.upgradesButtonText}>{language ? 'Pts. renasc.' : 'Rebirth pts.'}</Text>
+              </TouchableOpacity>
+            }
             <TouchableOpacity
               style={
                 this.state.showUpgrades ? 
@@ -428,7 +509,8 @@ class GamePlay extends Component {
               onPress={() => {
                 this.setState({ 
                   showUpgrades: !this.state.showUpgrades,
-                  showMenu: false
+                  showMenu: false,
+                  showRebirth: false,
                 })
               }}
             >
@@ -444,31 +526,109 @@ class GamePlay extends Component {
               onPress={() => {
                 this.setState({ 
                   showMenu: !this.state.showMenu,
-                  showUpgrades: false
+                  showUpgrades: false,
+                  showRebirth: false
                 })
               }}
             >
               <Text style={styles.upgradesButtonText}>Menu</Text>
             </TouchableOpacity>
           </View>
+          {this.state.showRebirth &&
+            <ScrollView style={styles.bottomMenuContent}>
+              <View style={styles.upgradesRow}>
+                <Text>
+                  {language ? `Receber até ${rebirthGoldUpgrade+1000} ouro ao Renascer` : `Receive up to ${rebirthGoldUpgrade+1000} gold on Rebirth`}
+                </Text>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: (rebirthPoints < 1) ? '#c5c5c5' : 'green',
+                    padding: 4
+                  }}
+                  onPress={() => {
+                    this.rebirthUpgrade('gold')
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: "bold" }}>{language ? 'Comprar' : 'Buy'} 1 RP</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.upgradesRow}>
+                <Text>
+                  {language ? 'Dano ocioso' : 'Idle Damage'}: +{(rebirthIdleUpgrade*100)+10}%
+                </Text>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: (rebirthPoints < 1 || rebirthLevel < 2) ? '#c5c5c5' : 'green',
+                    padding: 4
+                  }}
+                  onPress={() => {
+                    this.rebirthUpgrade('idle')
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: "bold" }}>{language ? 'Comprar' : 'Buy'} 1 RP</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.upgradesRow}>
+                <Text>
+                  {language ? 'Dano por Clique' : 'Click Damage'}: +{(rebirthClickUpgrade*100)+10}%
+                </Text>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: (rebirthPoints < 1 || rebirthLevel < 3) ? '#c5c5c5' : 'green',
+                    padding: 4
+                  }}
+                  onPress={() => {
+                    this.rebirthUpgrade('click')
+                  }}
+                >
+                  <Text style={{ color: '#FFF', fontWeight: "bold" }}>{language ? 'Comprar' : 'Buy'} 1 RP</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          }
           {this.state.showMenu &&
             <ScrollView style={styles.bottomMenuContent}>
               <View style={styles.upgradesRow}>
-                <Text />
+                <View style={{padding: 4}}>
+                  <Text style={{fontWeight: 'bold', textDecorationStyle: 'solid', textDecorationLine: 'underline'}}>{language ? 'Histório de conquistas' : 'Achievements history'}</Text>
+                </View>
                 <TouchableOpacity
                   style={{
-                    backgroundColor: 'e5e5e5',
+                    backgroundColor: '#ffbf00',
                     padding: 4,
                   }}
                   onPress={() => {
                     this.props.goBackToMenu()
                   }}
                 >
-                  <Text style={{ color: '#4a5b64', fontWeight: "bold" }}>{language ? 'VOLTAR' : 'BACK'}</Text>
+                  <Text style={{ color: '#FFF', fontWeight: "bold" }}>{language ? 'Menu Principal' : 'Main Menu'}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.upgradesRow}>
-                <View style={{ padding: 4}}><Text> </Text></View>
+                <View style={{ padding: 4, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
+                  <View>
+                    <Text>{language ? 'Cliques' : 'Clicks'}: {this.state.clickTotal}</Text>
+                  </View>
+                  <View>
+                    <Text>{language ? 'Ouro' : 'Gold'}: {this.state.ouroTotal}</Text>
+                  </View>
+                  <View>
+                    <Text>{language ? 'Inimigos' : 'Enemies'}: {this.state.enemyTotal}</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.upgradesRow}>
+                <View style={{ padding: 4, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
+                  <View>
+                    <Text>{language ? 'Renascido' : 'Rebirth LVL'}: {this.state.rebirthLevel}</Text>
+                  </View>
+                  <View>
+                    <Text>{language ? 'Pts. renasc.' : 'Rebirth pts.'}: {this.state.rebirthPoints}</Text>
+                  </View>
+                  <View>
+                    <Text>                        </Text>
+                  </View>
+                </View>
               </View>
             </ScrollView>
           }
@@ -476,7 +636,7 @@ class GamePlay extends Component {
             <ScrollView style={styles.bottomMenuContent}>
               <View style={styles.upgradesRow}>
                 <Text>
-                  {language ? 'Dano por clique' : 'Click Damage'}: {dano}
+                  {language ? 'Dano por clique' : 'Click Damage'}: {(dano+((dano+1)*rebirthClickUpgrade)+1).toFixed(1)}
                 </Text>
                 <TouchableOpacity
                   style={{
@@ -492,7 +652,7 @@ class GamePlay extends Component {
               </View>
               <View style={styles.upgradesRow}>
                 <Text>
-                  {language ? 'Dano ocioso' : 'Idle Damage'}: {autoDano}/s
+                  {language ? 'Dano ocioso' : 'Idle Damage'}: {(autoDano+((autoDano+1)*rebirthIdleUpgrade)+1).toFixed(1)}/s
                 </Text>
                 <TouchableOpacity
                   style={{
@@ -505,6 +665,9 @@ class GamePlay extends Component {
                 >
                   <Text style={{ color: '#FFF', fontWeight: "bold" }}>{language ? 'Comprar' : 'Buy'} ${valAutoUpgrade}</Text>
                 </TouchableOpacity>
+              </View>
+              <View style={styles.upgradesRow}>
+                <View style={{ padding: 4}}><Text> </Text></View>
               </View>
             </ScrollView>
           }

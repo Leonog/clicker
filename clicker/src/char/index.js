@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, Text, Animated, Image, TouchableWithoutFeedback } from 'react-native'
+import { View, TouchableOpacity, TouchableWithoutFeedback } from 'react-native'
 import SpriteSheet from 'rn-sprite-sheet';
-import GamePlay from '../gamePlay';
 
 class Char extends Component {
 
@@ -71,9 +70,11 @@ class Char extends Component {
           alignItems: 'center',
         }}
         onPress={() => {
-          this.props.hit(this.props.dano)
+          this.props.hit(this.props.dano, this.props.rebirthUpgrade)
+          this.props.setClickTotal()
           this.attack()
         }}
+        activeOpacity={1}
       >
         <View style={{ display: 'flex', marginTop: 50, marginRight: 190 }}>
           <SpriteSheet

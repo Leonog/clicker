@@ -5,12 +5,15 @@ import { Text, TouchableOpacity } from 'react-native'
 class AutoClick extends Component {
   state = {
     timer: null,
-    autoClick: true,
+    autoClick: false,
   };
 
   componentDidMount() {
-    let timer = setInterval(this.hit, 200);
-    this.setState({ timer });
+    const { autoClick } = this.state
+    if(autoClick){
+       let timer = setInterval(this.hit, 200);
+      this.setState({ timer });
+    }
   }
 
   componentWillUnmount() {
@@ -19,7 +22,7 @@ class AutoClick extends Component {
   }
 
   hit = () => {
-    this.props.hit(this.props.dano*0.2)
+    this.props.hit(this.props.dano*0.2, this.props.rebirthUpgrade)
     console.log('HIT', this.props.dano)
   }
 
